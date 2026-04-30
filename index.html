@@ -4,13 +4,207 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TELA Pipeline</title>
-<style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<p>Loading data files...</p>
-<script src="data1.js"></script>
-<script src="data2.js"></script>
-<script src="data3.js"></script>
-<script>console.log('SHEET_PROPS loaded:', typeof SHEET_PROPS_1);</script>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-logo">open<span>door</span></div>
+    <div class="topbar-title">TELA Pipeline Tracker</div>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-count" id="topCount">Loading…</span>
+    <button class="btn btn-ghost btn-sm" onclick="openAddModal()">&#xFF0B; Add Property</button>
+  </div>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls-bar">
+  <div class="search-wrap">
+    <svg width="14" height="14" fill="none" stroke="#9CA3AF" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input class="search-input" id="searchInput" type="text" placeholder="Search address, agent, market, flip ID…">
+  </div>
+  <select class="sel" id="psmFilter">
+    <option value="">All PSMs</option>
+    <option>Melissa Jenkins-Dill</option>
+    <option>Jackson Upcheshaw</option>
+    <option>Shea Helland</option>
+    <option>Suliman Sarwar</option>
+    <option>Alexis Schlattman</option>
+    <option>Spencer Jenkins</option>
+    <option>Melissa Giersz</option>
+    <option>Internal Closed</option>
+  </select>
+  <select class="sel" id="marketFilter"></select>
+  <select class="sel" id="allocFilter">
+    <option value="">All Alloc.</option>
+    <option value="TRUE">Allocated</option>
+    <option value="FALSE">Not Allocated</option>
+  </select>
+  <div class="view-toggle">
+    <button class="vbtn active" id="vTable" onclick="setView('table')">Table</button>
+    <button class="vbtn" id="vCards" onclick="setView('cards')">Cards</button>
+    <button class="vbtn" id="vKanban" onclick="setView('kanban')">Kanban</button>
+  </div>
+</div>
+
+<!-- STAGE FILTER STRIP -->
+<div class="stage-strip" id="stageStrip"></div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+  <div id="tableView">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="address" id="th-address">Address</th>
+            <th data-sort="stage" id="th-stage">Stage</th>
+            <th data-sort="psm" id="th-psm">PSM</th>
+            <th data-sort="market" id="th-market">Market</th>
+            <th>Agent</th>
+            <th data-sort="listPrice" id="th-listPrice">List Price</th>
+            <th data-sort="activeDate" id="th-activeDate">Active Date</th>
+            <th data-sort="closeDate" id="th-closeDate">Close Date</th>
+            <th>Alloc.</th>
+            <th>Notes</th>
+            <th class="td-del"></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="cardsView" style="display:none;"><div class="cards-grid" id="cardsGrid"></div></div>
+  <div id="kanbanView" style="display:none;"><div class="kanban-outer"><div class="kanban" id="kanban"></div></div></div>
+  <div id="emptyState" style="display:none;" class="no-results">No properties match your filters.</div>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="overlay" id="overlay" onclick="handleOverlayBg(event)">
+  <div class="panel" id="panel">
+    <div class="panel-head">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+          <div class="panel-title" id="panelTitle"></div>
+          <button class="panel-close" onclick="closePanel()">&#x2715;</button>
+        </div>
+        <div class="panel-sub" id="panelSub"></div>
+        <div class="panel-tags" id="panelTags"></div>
+      </div>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </div>
+</div>
+
+<!-- ADD PROPERTY MODAL -->
+<div class="modal-overlay" id="addModal" onclick="handleModalBg(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Add Property</h2>
+      <button class="modal-close" onclick="closeAddModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Address *</label>
+          <input class="form-input" id="f-address" placeholder="123 Main St, City, ST 12345" required>
+        </div>
+        <div class="form-group">
+          <label>Flip / Token ID</label>
+          <input class="form-input" id="f-flip" placeholder="e.g. 3RF3XACX163PA">
+        </div>
+        <div class="form-group">
+          <label>Market</label>
+          <input class="form-input" id="f-market" placeholder="e.g. DFW">
+        </div>
+        <div class="form-group">
+          <label>Assigned PSM *</label>
+          <select class="form-sel" id="f-psm">
+            <option value="">Select PSM…</option>
+            <option>Melissa Jenkins-Dill</option>
+            <option>Jackson Upcheshaw</option>
+            <option>Shea Helland</option>
+            <option>Suliman Sarwar</option>
+            <option>Alexis Schlattman</option>
+            <option>Spencer Jenkins</option>
+            <option>Melissa Giersz</option>
+            <option>Internal Closed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Stage</label>
+          <select class="form-sel" id="f-stage">
+            <option value="">No Stage</option>
+            <option>Acq Closing</option>
+            <option>Reno</option>
+            <option>Pre-Listing</option>
+            <option>Active</option>
+            <option>Under Contract</option>
+            <option>Recruiting</option>
+            <option>Recruiting (HOLD)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Sourced Agent</label>
+          <input class="form-input" id="f-agent" placeholder="Agent name">
+        </div>
+        <div class="form-group">
+          <label>Agent Phone</label>
+          <input class="form-input" id="f-agentPhone" placeholder="(555) 123-4567">
+        </div>
+        <div class="form-group full">
+          <label>Agent Email</label>
+          <input class="form-input" id="f-agentEmail" type="email" placeholder="agent@example.com">
+        </div>
+        <div class="form-group">
+          <label>List Price</label>
+          <input class="form-input" id="f-listPrice" placeholder="$000,000">
+        </div>
+        <div class="form-group">
+          <label>Active Date</label>
+          <input class="form-input" id="f-activeDate" type="date">
+        </div>
+        <div class="form-group">
+          <label>Allocated?</label>
+          <select class="form-sel" id="f-allocated">
+            <option value="">—</option>
+            <option value="TRUE">Yes</option>
+            <option value="FALSE">No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Slack Link</label>
+          <input class="form-input" id="f-slackLink" placeholder="https://opendoor.slack.com/…">
+        </div>
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea class="form-ta" id="f-notes" placeholder="Any initial notes…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-save" onclick="saveNewProperty()">Add Property</button>
+    </div>
+  </div>
+</div>
+
+<script src="chunk_1.js"></script>
+<script src="chunk_2.js"></script>
+<script src="chunk_3.js"></script>
+<script src="chunk_4.js"></script>
+<script src="chunk_5.js"></script>
+<script src="chunk_6.js"></script>
+<script src="chunk_7.js"></script>
+<script src="chunk_8.js"></script>
+<script src="chunk_9.js"></script>
+<script src="chunk_10.js"></script>
+<script src="chunk_11.js"></script>
+<script>const SHEET_PROPS = [...SHEET_PROPS_1, ...SHEET_PROPS_2, ...SHEET_PROPS_3, ...SHEET_PROPS_4, ...SHEET_PROPS_5, ...SHEET_PROPS_6, ...SHEET_PROPS_7, ...SHEET_PROPS_8, ...SHEET_PROPS_9, ...SHEET_PROPS_10, ...SHEET_PROPS_11];</script>
+<script src="app_part1.js"></script>
+<script src="app_part2.js"></script>
 </body>
 </html>
