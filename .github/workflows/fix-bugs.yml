@@ -1,0 +1,17 @@
+name: Fix JS bugs
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run fix script
+        run: python3 fix_bugs.py
+      - name: Commit and push
+        run: |
+          git config user.email "fix-bot@github.com"
+          git config user.name "Fix Bot"
+          git diff --quiet || (git add app_part1.js app_part2.js && git commit -m "Fix JS syntax errors: missing quote in kanban/danger zone buttons, fix init section" && git push)
