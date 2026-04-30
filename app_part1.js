@@ -254,7 +254,7 @@ function renderKanban(props) {
           '</div>';
         }).join('') +
       '</div>' +
-      '<div class="kancol-add"><button class="kancol-add-btn" onclick="openAddModalForStage(\'' + esc(stage) + \')">＋ Add property</button></div>';
+      '<div class="kancol-add"><button class="kancol-add-btn" onclick="openAddModalForStage(\'' + esc(stage) + '\')">＋ Add property</button></div>';
     kb.appendChild(col);
   });
 }

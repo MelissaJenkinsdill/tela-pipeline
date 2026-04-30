@@ -85,7 +85,7 @@ function renderPanelBody(p) {
     // Danger zone
     '<div class="sec">' +
     '<div class="sec-title">Actions</div>' +
-    (isUserProp(p.id) ? '<button class="btn btn-danger btn-sm" onclick="deleteProperty(\'' + p.id.replace(/'/g,"\\'") + \')">Delete Property</button>' : '<span style="font-size:12px;color:#9CA3AF;">Sheet properties cannot be deleted here.</span>') +
+    (isUserProp(p.id) ? '<button class="btn btn-danger btn-sm" onclick="deleteProperty(\'' + p.id.replace(/'/g,"\\'") + '\')">Delete Property</button>' : '<span style="font-size:12px;color:#9CA3AF;">Sheet properties cannot be deleted here.</span>') +
     '</div>';
 }
 
@@ -304,7 +304,8 @@ document.getElementById('marketFilter').addEventListener('change', e => { filter
 document.getElementById('allocFilter').addEventListener('change', e => { filterAlloc = e.target.value; refresh(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closePanel(); closeAddModal(); } });
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────────────npopulateMarkets();
+// ─── INIT ─────────────────────────────────────────────────────────────────────────────
+populateMarkets();
 refresh();
 
 function updateHeaderHeight() {
